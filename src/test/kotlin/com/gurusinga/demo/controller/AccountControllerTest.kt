@@ -1,7 +1,7 @@
 package com.gurusinga.demo.controller
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.gurusinga.demo.model.Bank
+import com.gurusinga.demo.model.Account
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
@@ -15,63 +15,61 @@ import org.springframework.test.web.servlet.*
 
 @SpringBootTest
 @AutoConfigureMockMvc
-internal class BankControllerTest @Autowired constructor(
+internal class AccountControllerTest @Autowired constructor(
     val mockMvc: MockMvc,
     val objectMapper: ObjectMapper
 ){
-    var baseUrl: String = "/api/banks"
+    var baseUrl: String = "/api/accounts"
 
     @Nested
-    @DisplayName("GET /api/banks")
+    @DisplayName("GET /api/accounts")
     @TestInstance(TestInstance.Lifecycle.PER_CLASS)
-    inner class GetBanks {
+    inner class GetAccounts {
         @Test
-        fun `should return all bank`() {
+        fun `should return all accounts`() {
             mockMvc.get(baseUrl)
                 .andDo { print() }
                 .andExpect {
                     status { isOk() }
                     content { contentType(MediaType.APPLICATION_JSON) }
-                    jsonPath("$[0].accountNumber") { value("1234") }
+                    jsonPath("$[0].userName") { value("jdoe") }
                 }
         }
     }
 
     @Nested
-    @DisplayName("GET /api/banks/{accountNumber}")
+    @DisplayName("GET /api/accounts/{userName}")
     @TestInstance(TestInstance.Lifecycle.PER_CLASS)
-    inner class GetBank {
+    inner class GetAccount {
         @Test
-        fun `should return the bank with the given account number`() {
-
-            val accountNumber = 1234
-            mockMvc.get("$baseUrl/$accountNumber")
+        fun `should return the account with the given username`() {
+            val userName = "jdoe"
+            mockMvc.get("$baseUrl/$userName")
                 .andDo { print() }
                 .andExpect {
                     status { isOk() }
                     content { contentType(MediaType.APPLICATION_JSON) }
-                    jsonPath("$.trust") { value("12.3") }
-                    jsonPath("$.transactionFee") { value("12") }
+                    jsonPath("$.name") { value("John Doe") }
+                    jsonPath("$.emailAddress") { value("jdoe@google.de") }
                 }
         }
 
         @Test
-        fun `should return NotFound when the accountNumber is missing`() {
-            val accountNumber = "does_not_exist"
-
-            mockMvc.get("$baseUrl/$accountNumber")
+        fun `should return NotFound when the username is missing`() {
+            val userName = "does_not_exist"
+            mockMvc.get("$baseUrl/$userName")
                 .andDo { print() }
                 .andExpect { status { isNotFound() } }
         }
     }
 
     @Nested
-    @DisplayName("POST /api/banks")
+    @DisplayName("POST /api/accounts")
     @TestInstance(TestInstance.Lifecycle.PER_CLASS)
-    inner class PostNewBank {
+    inner class PostNewAccount {
         @Test
-        fun `should add a new bank`() {
-            val newAccount = Bank("9999", 9.9, 99)
+        fun `should add a new account`() {
+            val newAccount = Account("newAccount", "New Account", "new@account.com")
 
             val performPost = mockMvc.post(baseUrl) {
                 contentType = MediaType.APPLICATION_JSON
@@ -87,7 +85,7 @@ internal class BankControllerTest @Autowired constructor(
                 }
             }
 
-            mockMvc.get("${baseUrl}/${newAccount.accountNumber}")
+            mockMvc.get("${baseUrl}/${newAccount.userName}")
                 .andExpect {
                     content {
                         json(objectMapper.writeValueAsString(newAccount))
@@ -96,8 +94,8 @@ internal class BankControllerTest @Autowired constructor(
         }
 
         @Test
-        fun `should return BadRequest when bank already exists`() {
-            val currentAccount = Bank("1234",  12.3, 12)
+        fun `should return BadRequest when account already exists`() {
+            val currentAccount = Account("jdoe", "John Doe", "jdoe@google.de")
 
             val performPost = mockMvc.post(baseUrl) {
                 contentType = MediaType.APPLICATION_JSON
@@ -112,12 +110,12 @@ internal class BankControllerTest @Autowired constructor(
     }
 
     @Nested
-    @DisplayName("PATCH /api/banks")
+    @DisplayName("PATCH /api/accounts")
     @TestInstance(TestInstance.Lifecycle.PER_CLASS)
-    inner class PatchExistingBank {
+    inner class PatchExistingAccount {
         @Test
-        fun `should update an existing bank`() {
-            val updatedAccount = Bank("1234", 1.0, 1)
+        fun `should update an existing account`() {
+            val updatedAccount = Account("jdoe", "Not John Doe", "jdoe@google.de")
 
             val performPatch = mockMvc.patch(baseUrl) {
                 contentType = MediaType.APPLICATION_JSON
@@ -133,7 +131,7 @@ internal class BankControllerTest @Autowired constructor(
                 }
             }
 
-            mockMvc.get("${baseUrl}/${updatedAccount.accountNumber}")
+            mockMvc.get("${baseUrl}/${updatedAccount.userName}")
                 .andExpect {
                     content {
                         json(objectMapper.writeValueAsString(updatedAccount))
@@ -142,8 +140,8 @@ internal class BankControllerTest @Autowired constructor(
         }
 
         @Test
-        fun `should return NotFound if there is no account number is defined`() {
-            val updatedAccount = Bank("444444", 1.0, 1)
+        fun `should return NotFound if there is no account is defined`() {
+            val updatedAccount = Account("notFoundAccount", "Not Found", "not@found.de")
 
             val performPatch = mockMvc.patch(baseUrl) {
                 contentType = MediaType.APPLICATION_JSON
@@ -158,14 +156,14 @@ internal class BankControllerTest @Autowired constructor(
     }
 
     @Nested
-    @DisplayName("DELETE /api/banks")
+    @DisplayName("DELETE /api/accounts")
     @DirtiesContext
     @TestInstance(TestInstance.Lifecycle.PER_CLASS)
-    inner class DeleteExistingBank {
+    inner class DeleteExistingAccount{
         @Test
-        fun `should delete an existing bank`() {
-
-            val performRemoval = mockMvc.delete("$baseUrl/1234")
+        fun `should delete an existing account`() {
+            val userName = "jdoe"
+            val performRemoval = mockMvc.delete("$baseUrl/$userName")
 
             performRemoval.andDo { print() }
             performRemoval.andExpect {
@@ -178,7 +176,7 @@ internal class BankControllerTest @Autowired constructor(
         }
 
         @Test
-        fun `should return NotFound if there is no account number is defined`() {
+        fun `should return NotFound if there is no account is defined`() {
 
             val performRemoval = mockMvc.delete("$baseUrl/does_not_exist")
             performRemoval.andDo { print() }

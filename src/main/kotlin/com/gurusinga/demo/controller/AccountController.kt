@@ -1,7 +1,7 @@
 package com.gurusinga.demo.controller
 
-import com.gurusinga.demo.model.Bank
-import com.gurusinga.demo.service.BankService
+import com.gurusinga.demo.model.Account
+import com.gurusinga.demo.service.AccountService
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.DeleteMapping
@@ -16,8 +16,8 @@ import org.springframework.web.bind.annotation.ResponseStatus
 import org.springframework.web.bind.annotation.RestController
 
 @RestController
-@RequestMapping("/api/banks")
-class BankController(private val service: BankService){
+@RequestMapping("/api/accounts")
+class AccountController(private val service: AccountService){
 
     @ExceptionHandler(NoSuchElementException::class)
     fun handleNotFound(e: NoSuchElementException): ResponseEntity<String> = ResponseEntity(e.message, HttpStatus.NOT_FOUND)
@@ -26,19 +26,19 @@ class BankController(private val service: BankService){
     fun handleBadRequest(e: IllegalArgumentException): ResponseEntity<String> = ResponseEntity(e.message, HttpStatus.BAD_REQUEST)
 
     @GetMapping
-    fun getBanks(): Collection<Bank> = service.getBanks()
+    fun getAccounts(): Collection<Account> = service.getAccounts()
 
-    @GetMapping("/{accountNumber}")
-    fun getBank(@PathVariable accountNumber: String) = service.getBank(accountNumber)
+    @GetMapping("/{userName}")
+    fun getAccount(@PathVariable userName: String) = service.getAccount(userName)
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    fun addBank(@RequestBody bank: Bank) = service.addBank(bank)
+    fun addAccount(@RequestBody account: Account) = service.addAccount(account)
 
     @PatchMapping
-    fun updateBank(@RequestBody bank: Bank) = service.updateBank(bank)
+    fun updateAccount(@RequestBody account: Account) = service.updateAccount(account)
 
-    @DeleteMapping("/{accountNumber}")
+    @DeleteMapping("/{userName}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    fun removeBank(@PathVariable accountNumber: String): Unit = service.removeBank(accountNumber)
+    fun removeAccount(@PathVariable userName: String): Unit = service.removeAccount(userName)
 }
